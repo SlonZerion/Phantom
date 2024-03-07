@@ -1,4 +1,4 @@
-# Backpack
+# Phantom
 
  - SWAP
 
@@ -20,3 +20,6 @@ Installing all dependencies: \
 
 Run main script: \
 `python main.py`
+
+TG:
+https://t.me/SlonSoftware
