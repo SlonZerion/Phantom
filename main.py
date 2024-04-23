@@ -68,7 +68,9 @@ async def run(id, private_key, proxy, semaphore):
                     await inputs[0].type(NEW_PASSWORD)
                     await inputs[1].type(NEW_PASSWORD)
                     await inputs[2].click()
+                    await asyncio.sleep(random.uniform(0.5, 1))
                     await page.click('button[data-testid="onboarding-form-submit-button"]', timeout=5000)
+                    await asyncio.sleep(random.uniform(0.5, 1))
                     await page.click('input[data-testid="onboarding-form-saved-secret-recovery-phrase-checkbox"]', timeout=5000)
                     await page.click('button[data-testid="onboarding-form-submit-button"]', timeout=5000)
 
@@ -124,6 +126,7 @@ async def swap(id, context, page, extension_url):
             
                 from_asset = random.choice(FROM_ASSET_LIST)
                 await page.fill('input[placeholder="Поиск…"]', from_asset, timeout=20000) 
+                await page.wait_for_selector(f'p:text("{from_asset}")', timeout=20000)
                 await asyncio.sleep(random.uniform(2, 3))
                 if from_asset == 'SOL':
                     data_testid_selector = '[data-testid="fungible-token-row-SOL"]'
@@ -142,8 +145,9 @@ async def swap(id, context, page, extension_url):
                 
                 await asyncio.sleep(random.uniform(0.5, 1))
                 to_asset = random.choice(TO_ASSET_LIST)
+                await asyncio.sleep(random.uniform(2, 3))
                 await page.fill('input[placeholder="Поиск…"]', to_asset, timeout=20000) 
-                await asyncio.sleep(random.uniform(2, 4))
+                await asyncio.sleep(random.uniform(4, 5))
                 await page.wait_for_selector(f'p:text("{to_asset}")', timeout=20000)
                 if to_asset == 'SOL':
                     data_testid_selector = '[data-testid="fungible-token-row-SOL"]'
