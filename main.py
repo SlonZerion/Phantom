@@ -1,4 +1,5 @@
 import asyncio
+import os
 import random
 import traceback
 
@@ -23,8 +24,8 @@ async def run(id, private_key, proxy, semaphore):
                 async with async_playwright() as playwright:
                     args=[
                         '--disable-blink-features=AutomationControlled',
-                        f"--disable-extensions-except={EXTENSION_PATH}",
-                        f"--load-extension={EXTENSION_PATH}"
+                        f"--disable-extensions-except={os.path.abspath('PhantomExtension')}",
+                        f"--load-extension={os.path.abspath('PhantomExtension')}"
                     ]
                     if proxy is not None and USE_PROXY is True:
                         address, port, login, password = get_format_proxy(proxy)
