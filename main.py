@@ -106,64 +106,77 @@ async def run(id, private_key, proxy, semaphore):
 async def swap(id, context, page, extension_url):
     rand_self_count = random.randint(SWAP_COUNT[0], SWAP_COUNT[1])
     logger.info(f"{id} | START {rand_self_count} swaps..")
-    count_errors = 0
+    
     for i in range(1, rand_self_count+1):
-        if count_errors > MAX_TRY_SEND:
-            logger.error(f"{id} | Error rate of more than {MAX_TRY_SEND} | Skip wallet...")
-            break
-        try:
-            await page.goto(f'chrome-extension://{extension_url}/popup.html', timeout=5000)
-            
-            await page.click('a[href="/swap"]', timeout=5000)
-            await asyncio.sleep(random.uniform(0.5, 1))
-            await page.click('div[class="sc-edowFN kBnWEO"]', timeout=5000)
-            await asyncio.sleep(random.uniform(1, 3))
-           
-            from_asset = random.choice(FROM_ASSET_LIST)
-            await page.fill('input[placeholder="Поиск…"]', from_asset, timeout=20000) 
-            await asyncio.sleep(random.uniform(3, 4))
-            # await page.click(f'p:text("{from_asset}")', timeout=20000)
-            await page.wait_for_selector(f'p:text("{from_asset}")', timeout=20000)
-            elements = await page.query_selector_all('xpath=//p')
-            for el in elements:
-                text_el = await el.text_content()
-                if text_el.strip() == from_asset:
-                    await el.click()
-                    break
-            
-            await asyncio.sleep(random.uniform(0.5, 1))
-            await page.click('//*[@id="tab-content"]/div/div/div/div[1]/div[3]/div', timeout=5000)
-            
-            await asyncio.sleep(random.uniform(0.5, 1))
-            to_asset = random.choice(TO_ASSET_LIST)
-            await page.fill('input[placeholder="Поиск…"]', to_asset, timeout=20000) 
-            await asyncio.sleep(random.uniform(3, 4))
-            await page.wait_for_selector(f'p:text("{to_asset}")', timeout=20000)
-            elements_to = await page.query_selector_all('xpath=//p')
-            for elto in elements_to:
-                text_el_to = await elto.text_content()
-                if text_el_to.strip() == to_asset:
-                    await asyncio.sleep(random.uniform(0.5, 1))
-                    await elto.click()
-                    break
+        
+        count_errors = 0
+        for _ in range(MAX_TRY_SEND):
+            if count_errors > MAX_TRY_SEND:
+                logger.error(f"{id} | Error rate of more than {MAX_TRY_SEND} | Skip wallet...")
+                return
+            try:
+                await page.goto(f'chrome-extension://{extension_url}/popup.html', timeout=5000)
                 
-            await asyncio.sleep(random.uniform(1, 1.5))
-            rand_sum_tx = random.uniform(float(SWAP_SELF_AMOUNT[0]), float(SWAP_SELF_AMOUNT[1]))
-            await page.fill('input[name="amount"]', f"{rand_sum_tx:.6f}", timeout=10000) 
-            await asyncio.sleep(random.uniform(3, 6))
-            await page.click('button[type="submit"]', timeout=10000)
-            await asyncio.sleep(random.uniform(3, 6))
-            await page.click('button[type="button"]', timeout=10000)
-            await asyncio.sleep(random.uniform(7, 12))
-            await page.wait_for_selector(f'p:text("Готово!")', timeout=40000)
-            logger.success(f"{id} | Swap {i} | {rand_sum_tx:.6f} {from_asset} -> {to_asset}")
-            count_errors=0
-            sleep_duration = random.randrange(NEXT_TX_MIN_WAIT_TIME, NEXT_TX_MAX_WAIT_TIME)
-            logger.info(f"{id} | Sleep {sleep_duration}")
-            await asyncio.sleep(sleep_duration)
-        except Exception as ex:
-            logger.error(f'{id} | {ex}', traceback.format_exc())
-            count_errors+=1
+                await page.click('a[href="/swap"]', timeout=5000)
+                await asyncio.sleep(random.uniform(0.5, 1))
+                await page.click('div[class="sc-edowFN kBnWEO"]', timeout=5000)
+                await asyncio.sleep(random.uniform(1, 3))
+            
+                from_asset = random.choice(FROM_ASSET_LIST)
+                await page.fill('input[placeholder="Поиск…"]', from_asset, timeout=20000) 
+                await asyncio.sleep(random.uniform(2, 3))
+                if from_asset == 'SOL':
+                    data_testid_selector = '[data-testid="fungible-token-row-SOL"]'
+                    await page.wait_for_selector(data_testid_selector)
+                    await page.click(data_testid_selector)
+                else:
+                    elements = await page.query_selector_all('xpath=//p')
+                    for el in elements:
+                        text_el = await el.text_content()
+                        if text_el.strip() == from_asset:
+                            await el.click()
+                            break
+                
+                await asyncio.sleep(random.uniform(0.5, 1))
+                await page.click('//*[@id="tab-content"]/div/div/div/div[1]/div[3]', timeout=5000)
+                
+                await asyncio.sleep(random.uniform(0.5, 1))
+                to_asset = random.choice(TO_ASSET_LIST)
+                await page.fill('input[placeholder="Поиск…"]', to_asset, timeout=20000) 
+                await asyncio.sleep(random.uniform(2, 4))
+                await page.wait_for_selector(f'p:text("{to_asset}")', timeout=20000)
+                if to_asset == 'SOL':
+                    data_testid_selector = '[data-testid="fungible-token-row-SOL"]'
+                    await page.wait_for_selector(data_testid_selector)
+                    await page.click(data_testid_selector)
+                else:
+                    elements_to = await page.query_selector_all('xpath=//p')
+                    for elto in elements_to:
+                        text_el_to = await elto.text_content()
+                        if text_el_to.strip() == to_asset:
+                            await asyncio.sleep(random.uniform(0.5, 1))
+                            await elto.click()
+                            break
+                    
+                await asyncio.sleep(random.uniform(1, 1.5))
+                rand_sum_tx = random.uniform(float(SWAP_SELF_AMOUNT[0]), float(SWAP_SELF_AMOUNT[1]))
+                await page.fill('input[name="amount"]', f"{rand_sum_tx:.6f}", timeout=10000) 
+                await asyncio.sleep(random.uniform(3, 6))
+                await page.click('button[type="submit"]', timeout=10000)
+                await asyncio.sleep(random.uniform(3, 6))
+                await page.click('button[type="button"]', timeout=10000)
+                await asyncio.sleep(random.uniform(7, 12))
+                await page.wait_for_selector(f'p:text("Готово!")', timeout=40000)
+                logger.success(f"{id} | Swap {i} | {rand_sum_tx:.6f} {from_asset} -> {to_asset}")
+                count_errors=0
+                sleep_duration = random.randrange(NEXT_TX_MIN_WAIT_TIME, NEXT_TX_MAX_WAIT_TIME)
+                logger.info(f"{id} | Sleep {sleep_duration}")
+                break
+            except Exception as ex:
+                logger.error(f'{id} | {ex}', traceback.format_exc())
+                count_errors+=1
+        await asyncio.sleep(sleep_duration)
+
 
 async def main(accounts):
     semaphore = asyncio.Semaphore(THREADS_NUM)
