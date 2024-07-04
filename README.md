@@ -22,4 +22,4 @@ Run main script: \
 `python main.py`
 
 TG:
-https://t.me/SlonSoftware
+https://t.me/SlonSOL
